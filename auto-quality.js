@@ -120,7 +120,7 @@ Or add to your bluemap html -- to always have the latest version
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) {console.log(`[AutoQuality] ↓ HIRES → ${hires}, LOWRES → ${lowres}`)};
+                    if (debug) { console.log(`[AutoQuality] ↓ HIRES → ${hires}, LOWRES → ${lowres}`) };
                 }
             } else if (fps < 20) {
                 if (autoHiresEnabled && hires > HIRES_MIN) {
@@ -136,7 +136,7 @@ Or add to your bluemap html -- to always have the latest version
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) {console.log(`[AutoQuality] ⬇ HIRES → ${hires}, LOWRES → ${lowres}`)};
+                    if (debug) { console.log(`[AutoQuality] ⬇ HIRES → ${hires}, LOWRES → ${lowres}`) };
                 }
             } else if (fps > 55) {
                 if (
@@ -160,69 +160,37 @@ Or add to your bluemap html -- to always have the latest version
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) {console.log(`[AutoQuality] ↑ HIRES → ${hires}, LOWRES → ${lowres}`)};
+                    if (debug) { console.log(`[AutoQuality] ↑ HIRES → ${hires}, LOWRES → ${lowres}`) };
                 }
             }
         }
 
         let pendingQuality = null;
 
-function updateQuality(fps) {
-    if (!autoQualityEnabled) return;
+        function updateQuality(fps) {
+            if (!autoQualityEnabled) return;
 
-    let quality = bluemap.mapViewer.superSampling;
+            let quality = bluemap.mapViewer.superSampling;
 
-    if (fps > 48 && quality < QUALITY_TARGET) {
-        let dynamicStep = Math.min(QUALITY_STEP + (fps - 48) * 0.012, 0.3);
-        quality = Math.min(QUALITY_TARGET, quality + dynamicStep);
-        quality = Math.round(quality * 100) / 100;
-        pendingQuality = quality;
-    } else if (
-        fps < 35 &&
-        quality > QUALITY_MIN &&
-        bluemap.mapViewer.data.loadedHiresViewDistance <= HIRES_MIN &&
-        bluemap.mapViewer.data.loadedLowresViewDistance <= LOWRES_MIN
-    ) {
-        let dropStep = Math.min(QUALITY_STEP * 2 + (35 - fps) * 0.01, 0.3);
-        quality = Math.max(QUALITY_MIN, quality - dropStep);
-        quality = Math.round(quality * 100) / 100;
-        pendingQuality = quality;
-    }
-}
-
-// Then apply the update slightly after RAF:
-function animate() {
-    stats.begin();
-    stats.end();
-
-    frameCount++;
-    const now = performance.now();
-    if (now - lastTime >= REFRESH_INTERVAL_MS) {
-        fps = Math.round((frameCount * 1000) / (now - lastTime));
-        frameCount = 0;
-        lastTime = now;
-
-        adjustDistances(fps);
-        updateQuality(fps);
-    }
-
-    requestAnimationFrame(() => {
-        if (pendingQuality !== null) {
-            bluemap.mapViewer.superSampling = pendingQuality;
-            bluemap.saveUserSettings();
-            console.log(`[AutoQuality] ↻ Quality → ${pendingQuality}`);
-            pendingQuality = null;
+            if (fps > 48 && quality < QUALITY_TARGET) {
+                let dynamicStep = Math.min(QUALITY_STEP + (fps - 48) * 0.012, 0.3);
+                quality = Math.min(QUALITY_TARGET, quality + dynamicStep);
+                quality = Math.round(quality * 100) / 100;
+                pendingQuality = quality;
+            } else if (
+                fps < 35 &&
+                quality > QUALITY_MIN &&
+                bluemap.mapViewer.data.loadedHiresViewDistance <= HIRES_MIN &&
+                bluemap.mapViewer.data.loadedLowresViewDistance <= LOWRES_MIN
+            ) {
+                let dropStep = Math.min(QUALITY_STEP * 2 + (35 - fps) * 0.01, 0.3);
+                quality = Math.max(QUALITY_MIN, quality - dropStep);
+                quality = Math.round(quality * 100) / 100;
+                pendingQuality = quality;
+            }
         }
 
-        animate();
-    });
-}
-
-
-        let lastTime = performance.now();
-        let frameCount = 0;
-        let fps = 60;
-
+        // Then apply the update slightly after RAF:
         function animate() {
             stats.begin();
             stats.end();
@@ -238,8 +206,22 @@ function animate() {
                 updateQuality(fps);
             }
 
-            requestAnimationFrame(animate);
+            requestAnimationFrame(() => {
+                if (pendingQuality !== null) {
+                    bluemap.mapViewer.superSampling = pendingQuality;
+                    bluemap.saveUserSettings();
+                    console.log(`[AutoQuality] ↻ Quality → ${pendingQuality}`);
+                    pendingQuality = null;
+                }
+
+                animate();
+            });
         }
+
+
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
 
         animate();
         console.log("Auto quality initiated.")
@@ -269,7 +251,7 @@ function animate() {
 
                     localStorage.setItem("autoLowresEnabled", autoLowresEnabled);
                 });
-                if (debug) {console.log("[AutoQuality] Auto buttons injected.")};
+                if (debug) { console.log("[AutoQuality] Auto buttons injected.") };
             }
         }, 1000); // Check every second
     }
