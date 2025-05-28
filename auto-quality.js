@@ -1,5 +1,5 @@
 /*
-Current version: v0.1.0
+Current version: v0.1.1
 Download the auto-quality.js script and add it to your bluemap server
 Or add it to your bluemap html to always have the latest version:
 Add to the header in the index.html: `<script src="https://raw.githubusercontent.com/Bertogim/bluemap-auto-quality/refs/heads/main/auto-quality.js"></script>`
@@ -111,9 +111,9 @@ Add to the header in the index.html: `<script src="https://raw.githubusercontent
             let lowres = bluemap.mapViewer.data.loadedLowresViewDistance;
             let changed = false;
 
-            if (fps < GOOD_FPS && fps >= LOWEST_FPS) {
+            if (fps < FPS_DECIDED_VALUE && fps >= LOWEST_FPS) {
                 // Reduce distances more aggressively the lower the fps gets
-                const fpsRatio = (GOOD_FPS - fps) / (GOOD_FPS - LOWEST_FPS); // 0..1
+                const fpsRatio = (FPS_DECIDED_VALUE - fps) / (FPS_DECIDED_VALUE - LOWEST_FPS); // 0..1
                 const dynamicHiresStep = Math.round(DISTANCE_STEP_HIRES * (0.5 + fpsRatio * 1.5)); // 5..25
                 const dynamicLowresStep = Math.round(DISTANCE_STEP_LOWRES * (0.5 + fpsRatio * 1.5)); // 50..250
 
@@ -149,7 +149,7 @@ Add to the header in the index.html: `<script src="https://raw.githubusercontent
                     safeSetData("loadedLowresViewDistance", lowres);
                     if (debug) { console.log(`[AutoQuality] ⬇ HIRES → ${hires}, LOWRES → ${lowres}`) };
                 }
-            } else if (fps > VERYGOOD_FPS) {
+            } else if (fps > FPS_DECIDED_VALUE) {
                 if (
                     autoHiresEnabled &&
                     hires < HIRES_MAX &&
@@ -181,8 +181,8 @@ Add to the header in the index.html: `<script src="https://raw.githubusercontent
             setTimeout(() => {
                 let quality = bluemap.mapViewer.superSampling;
 
-                if (fps > BEST_FPS && quality < QUALITY_TARGET) {
-                    let dynamicStep = Math.min(QUALITY_STEP + (fps - BEST_FPS) * 0.012, 0.3);
+                if (fps > FPS_DECIDED_VALUE && quality < QUALITY_TARGET) {
+                    let dynamicStep = Math.min(QUALITY_STEP + (fps - FPS_DECIDED_VALUE) * 0.012, 0.3);
                     quality = Math.min(QUALITY_TARGET, quality + dynamicStep);
                     quality = Math.round(quality * 100) / 100;
 
@@ -247,9 +247,9 @@ Add to the header in the index.html: `<script src="https://raw.githubusercontent
 
         // Periodically try to insert buttons if UI is visible
         setInterval(() => {
-            const qualityGroup = document.querySelector("div.group:nth-child(3) > div:nth-child(2)");
-            const hiresGroup = document.querySelector("div.group:nth-child(4) > div:nth-child(2)");
-            const lowresGroup = document.querySelector("div.group:nth-child(4) > div:nth-child(2)");
+            const qualityGroup = document.querySelector("#app > div.side-menu > div.content > div > div.group:nth-child(3) > div");
+            const hiresGroup = document.querySelector("#app > div.side-menu > div.content > div > div.group:nth-child(4) > div");
+            const lowresGroup = document.querySelector("#app > div.side-menu > div.content > div > div.group:nth-child(4) > div");
 
             const buttons = createAutoButtons(qualityGroup, hiresGroup, lowresGroup);
             if (buttons) {
