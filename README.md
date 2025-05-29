@@ -1,4 +1,7 @@
-# Bluemap auto quality script
-It can be disabled on bluemap graphics config.
+# Bluemap web auto quality script
+Auto quality can be disabled in the BlueMap graphical settings
 
-Download the auto-quality.js script and add it to your bluemap server
+- Auto render distance quality
+- Also changes resolution only as a last resort if render distance is turned all the way down and the fps are too low
+
+## Check the [Releases](https://github.com/Bertogim/bluemap-auto-quality/releases) to download the script!
