@@ -1,5 +1,7 @@
 /*
 Current version: v0.1.1
+
+Check for new versions at: https://github.com/Bertogim/bluemap-auto-quality/releases
 Download the auto-quality.js script and add it to your bluemap server
 */
 
