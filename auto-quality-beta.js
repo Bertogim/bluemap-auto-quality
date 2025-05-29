@@ -148,7 +148,7 @@ Download the auto-quality.js script and add it to your bluemap server
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) { console.log(`[AutoQuality] ↓ (adaptive) HIRES → ${ hires }, LOWRES → ${ lowres } (fps: ${ fps })`) };
+                    if (debug) { console.log(`[AutoQuality] ↓ (adaptive) HIRES → ${hires}, LOWRES → ${lowres} (fps: ${fps})`) };
                 }
 
             } else if (fps < LOWEST_FPS) {
@@ -165,7 +165,7 @@ Download the auto-quality.js script and add it to your bluemap server
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) { console.log(`[AutoQuality] ⬇ HIRES → ${ hires }, LOWRES → ${ lowres } `) };
+                    if (debug) { console.log(`[AutoQuality] ⬇ HIRES → ${hires}, LOWRES → ${lowres} `) };
                 }
             } else if (fps > FPS_DECIDED_VALUE) {
                 if (
@@ -189,7 +189,7 @@ Download the auto-quality.js script and add it to your bluemap server
                 if (changed) {
                     safeSetData("loadedHiresViewDistance", hires);
                     safeSetData("loadedLowresViewDistance", lowres);
-                    if (debug) { console.log(`[AutoQuality] ↑ HIRES → ${ hires }, LOWRES → ${ lowres } `) };
+                    if (debug) { console.log(`[AutoQuality] ↑ HIRES → ${hires}, LOWRES → ${lowres} `) };
                 }
             }
         }
@@ -206,8 +206,10 @@ Download the auto-quality.js script and add it to your bluemap server
 
                     bluemap.mapViewer.superSampling = quality;
                     bluemap.saveUserSettings();
-                    if (debug) { console.log(`[AutoQuality] ↑ Quality → ${ quality } (fps: ${ fps }, step: ${ dynamicStep.toFixed(2)
-    })`) };
+                    if (debug) {
+                        console.log(`[AutoQuality] ↑ Quality → ${quality} (fps: ${fps}, step: ${dynamicStep.toFixed(2)
+                            })`)
+                    };
                 } else if (
                     fps < LOW_FPS &&
                     quality > QUALITY_MIN &&
@@ -220,8 +222,10 @@ Download the auto-quality.js script and add it to your bluemap server
 
                     bluemap.mapViewer.superSampling = quality;
                     bluemap.saveUserSettings();
-                    if (debug) { console.log(`[AutoQuality] ↓ Quality → ${ quality } (fps: ${ fps }, step: ${ dropStep.toFixed(2)
-})`) };
+                    if (debug) {
+                        console.log(`[AutoQuality] ↓ Quality → ${quality} (fps: ${fps}, step: ${dropStep.toFixed(2)
+                            })`)
+                    };
                 }
             }, 0);
         }
@@ -230,39 +234,69 @@ Download the auto-quality.js script and add it to your bluemap server
         let frameCount = 0;
         let fps = 60;
 
+        let animationFrameId = null;
+        let isAnimating = false;
+
         function animate() {
-            stats.begin();
-            stats.end();
+            if (document.visibilityState !== "visible") return;
+
+            // Marca que estamos animando
+            isAnimating = true;
 
             frameCount++;
             const now = performance.now();
+
             if (now - lastTime >= REFRESH_INTERVAL_MS) {
                 fps = Math.round((frameCount * 1000) / (now - lastTime));
                 frameCount = 0;
                 lastTime = now;
 
+                const hires = bluemap.mapViewer.data.loadedHiresViewDistance;
 
-                let hires = bluemap.mapViewer.data.loadedHiresViewDistance;
-
-                if (hires > 0) {
-                    FPS_DECIDED_VALUE = GOOD_FPS
-                }
-                if (hires > 130) {
-                    FPS_DECIDED_VALUE = BEST_FPS
-                }
-                if (hires > 200) {
-                    FPS_DECIDED_VALUE = VERYGOOD_FPS
-                }
-
+                FPS_DECIDED_VALUE = hires > 160 ? VERYGOOD_FPS : hires > 120 ? BEST_FPS : hires > 0 ? GOOD_FPS : FPS_DECIDED_VALUE;
 
                 adjustDistances(fps);
                 updateQuality(fps);
             }
 
-            requestAnimationFrame(animate);
+            animationFrameId = requestAnimationFrame(animate);
         }
 
-        animate();
+        function startAnimationLoop() {
+            if (!isAnimating && document.visibilityState === "visible") {
+                lastTime = performance.now();
+                frameCount = 0;
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+
+        function stopAnimationLoop() {
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            isAnimating = false;
+        }
+
+        // Hook into visibility API
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+                console.log("[AutoQuality] Resumed");
+                setTimeout(() => {
+
+                    startAnimationLoop();
+                }, 100);
+            } else {
+                console.log("[AutoQuality] Paused");
+                stopAnimationLoop();
+            }
+        });
+
+        // Initial launch
+        if (document.visibilityState === "visible") {
+            startAnimationLoop();
+        }
+
         console.log("Auto quality initiated.")
 
         // Periodically try to insert buttons if UI is visible
