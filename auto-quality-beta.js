@@ -292,10 +292,8 @@ Download the auto-quality.js script and add it to your bluemap server
             }
         });
 
-        // Initial launch
-        if (document.visibilityState === "visible") {
-            startAnimationLoop();
-        }
+        startAnimationLoop();
+
 
         console.log("Auto quality initiated.")
 
